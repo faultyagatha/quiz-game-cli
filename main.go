@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"time"
 
 	"os"
 )
@@ -17,6 +18,7 @@ type Problem struct {
 
 func main() {
 	csvFile := flag.String("csv", "problems.csv", "a csv file in the format of question-answer")
+	timeLimit := flag.Int("limit", 30, "the time limit for the quiz in seconds")
 	flag.Parse()
 	file, err := os.Open(*csvFile)
 	if err != nil {
@@ -30,15 +32,29 @@ func main() {
 		exit(fmt.Sprintf("failed to parse the file"))
 	}
 	problems := parseLines(lines)
+	timer := time.NewTimer(time.Duration(*timeLimit * int(time.Second)))
+
 	var answer string
 	correct := 0
 	for i, v := range problems {
 		//start at index 1
 		fmt.Printf("Problem #%d: %s = \n", i+1, v.q)
-		fmt.Scanf("%s\n", &answer)
-		if answer == v.a {
-			fmt.Println("Correct")
-			correct++
+		answerCh := make(chan string)
+		//use goroutine to avoid blocking
+		go func() {
+			fmt.Scanf("%s\n", &answer)
+			answerCh <- answer //send the answer to the channel
+		}()
+		//always wait for an answer from 1 channel or the other
+		select {
+		case <-timer.C: //if we get a timer back, the result is not valid
+			fmt.Printf("\nYou scored %d out of %d.", correct, len(problems))
+			return
+		case answer = <-answerCh:
+			if answer == v.a {
+				fmt.Println("Correct")
+				correct++
+			}
 		}
 	}
 	fmt.Printf("You scored %d out of %d.", correct, len(problems))
