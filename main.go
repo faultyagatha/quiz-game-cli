@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"strings"
 
 	"os"
 )
@@ -23,13 +24,24 @@ func main() {
 	}
 	//create a reader
 	r := csv.NewReader(file)
-	//parse it
+	//parse the reader
 	lines, err := r.ReadAll()
 	if err != nil {
 		exit(fmt.Sprintf("failed to parse the file"))
 	}
 	problems := parseLines(lines)
-	fmt.Println(problems)
+	var answer string
+	correct := 0
+	for i, v := range problems {
+		//start at index 1
+		fmt.Printf("Problem #%d: %s = \n", i+1, v.q)
+		fmt.Scanf("%s\n", &answer)
+		if answer == v.a {
+			fmt.Println("Correct")
+			correct++
+		}
+	}
+	fmt.Printf("You scored %d out of %d.", correct, len(problems))
 }
 
 func exit(msg string) {
@@ -41,8 +53,8 @@ func parseLines(lines [][]string) []Problem {
 	res := make([]Problem, len(lines))
 	for i, v := range lines {
 		res[i] = Problem{
-			q: v[0], //question
-			a: v[1], //answer
+			q: v[0],                    //question
+			a: strings.TrimSpace(v[1]), //answer with trimmed spaces
 		}
 	}
 	return res
