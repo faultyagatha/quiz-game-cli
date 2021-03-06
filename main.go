@@ -33,7 +33,26 @@ func main() {
 	}
 	problems := parseLines(lines)
 	timer := time.NewTimer(time.Duration(*timeLimit * int(time.Second)))
+	doQuiz(problems, timer)
+}
 
+func exit(msg string) {
+	fmt.Printf(msg)
+	os.Exit(1)
+}
+
+func parseLines(lines [][]string) []Problem {
+	res := make([]Problem, len(lines))
+	for i, v := range lines {
+		res[i] = Problem{
+			q: v[0],                    //question
+			a: strings.TrimSpace(v[1]), //answer with trimmed spaces
+		}
+	}
+	return res
+}
+
+func doQuiz(problems []Problem, timer *time.Timer) {
 	var answer string
 	correct := 0
 	for i, v := range problems {
@@ -58,20 +77,4 @@ func main() {
 		}
 	}
 	fmt.Printf("You scored %d out of %d.", correct, len(problems))
-}
-
-func exit(msg string) {
-	fmt.Printf(msg)
-	os.Exit(1)
-}
-
-func parseLines(lines [][]string) []Problem {
-	res := make([]Problem, len(lines))
-	for i, v := range lines {
-		res[i] = Problem{
-			q: v[0],                    //question
-			a: strings.TrimSpace(v[1]), //answer with trimmed spaces
-		}
-	}
-	return res
 }
